@@ -1,3 +1,5 @@
+# **JPA 핵심 개념**
+
 ## **관계형 데이터베이스**
 - SQL을 실행하는 비용이 비싸다.
 - SQL이 db마다 다르다.
@@ -14,6 +16,7 @@
 ORM은 객체와 db간 캐시가 존재한다. <br> 여러 번의 쿼리를 날려도 데이터가 변해야 할 시점에 유효한 쿼리 1개만 실행된다.
 
 <hr/>
+
 * JDBC 사용 방법
 
 ```
@@ -86,7 +89,6 @@ spring.jpa.properties.hibernate.format_sql=true
 ```
 
 **Entity 맵핑 예제**
-
 - Entity 맵핑
 ```
 @NoArgsConstructor @AllArgsConstructor
@@ -272,5 +274,125 @@ public class JpaRunner implements ApplicationRunner{
 	}
 }
 ```
+<br>
 
+### **맵핑을 생각할 때는 주체가 되는 entity의 입장에서 생각한다.**
 
+ex) Post, Comment 
+```
+public class Post {
+	private Long id;
+	private String title;
+
+	// Post 한 개에 많은 Comment를 가짐.
+	@OneToMany(mappedBy = "post")
+	private Set<Comment> comments = new HashSet<>();
+}
+
+public class Comment {
+	private Long id;
+
+	private String comment;
+
+	// 다수의 comment 들이 하나의 Post에 달린다.	
+	@ManyToOne
+	private Post post;
+}
+```
+
+<hr/>
+
+## **Cascade** : 엔티티 상태 변화를 전파
+
+- Transient : JPA가 모르는 상태
+- Persistent : JPA가 관리중인 상태
+- Detached : JPA가 더이상 관리하지 않는 상태
+- Removed : JPA가 관리하긴 하지만 삭제하기로 한 상태
+
+### **Dirth checking / Write-behind**
+Transactional write-behind(트랜잭션을 지원하는 쓰기 지연) :  트랜젝션 커밋 될때까지 내부 쿼리저장소에 모아뒀다가 한번에 실행<br>
+Dirty Checking(변경감지) :
+엔티티의 스냅샷을 유지하면서 엔티티의 변경사항을 체크한다. update쿼리가 항상 같음.
+```
+		 Account kim = session.load(Account.class, account.getId());
+		 
+		 kim.setUsername("lee");
+		 System.out.println("===============");
+		 System.out.println(kim.getUsername());
+```
+
+해당 코드 쿼리 확인:insert 후 select 없이 바로 update를 실행했다. --> **Dirth checking & Write behind**
+```
+Hibernate: 
+    insert 
+    into
+        account
+        (created, password, username, id) 
+    values
+        (?, ?, ?, ?)
+		
+Hibernate: 
+    update
+        account 
+    set
+        created=?,
+        password=?,
+        username=? 
+    where
+        id=?
+```
+
+<hr>
+
+## **Fetch** : 연관 관계의 엔티티를 어떻게 가져올 것인가 (Eager, Lazy)
+
+@OneToMany : Lazy가 기본<br>
+: Post 가져올 때 Comment를 다 가져올 필요가 없다.
+
+@ManyToOne : Eager가 기본<br>
+: Comment를 가져올 때는 Post 정보가 필요하다.
+
+<hr>
+
+## **QUERY**
+
+### 1. JPQL(HQL)
+: 쿼리 작성 시 **Table** 기준이 아닌 **Entity** 기준
+<br>
+단점 : 타입 세이프 하지 않다.
+```
+@Override
+	public void run(ApplicationArguments args) throws Exception {
+		// Post는 Table명이 아닌 Entity명
+		Query query = entityManager.createQuery("select p from Post as p", Post.class);
+		List<Post> posts = query.getResultList();
+		posts.forEach(System.out::println);
+	}
+```
+
+### 2. Criteria
+: 타입 세이프한 쿼리
+
+```
+@Override
+	public void run(ApplicationArguments args) throws Exception {
+		CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+		CriteriaQuery<Post> query = builder.createQuery(Post.class);
+		Root<Post> root = query.from(Post.class);
+		query.select(root);
+		
+		List<Post> posts = entityManager.createQuery(query).getResultList();
+		posts.forEach(System.out::println);
+	}
+```
+
+### 3. Native Query : 
+JPQL , Criteria 처럼 query로 변경되는 방법들과 달리 직접 query를 작성하는 방법
+
+```
+@Override
+	public void run(ApplicationArguments args) throws Exception {
+		List<Post> posts = entityManager.createNativeQuery("select * from post", Post.class).getResultList();
+		posts.forEach(System.out::println);
+	}
+```
