@@ -9,19 +9,19 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
-@Entity
 @NoArgsConstructor @AllArgsConstructor
 @Getter @Setter
-public class Study {
+@ToString
+@Entity
+public class Comment {
 
 	@Id @GeneratedValue
 	private Long id;
 	
-	private String name;
+	private String comment;
 	
-	// Study 입장: 한 사람이 많은 스터디를 만들 수 있다.
 	@ManyToOne
-	private Account owner;
-	
+	private Post post;
 }
