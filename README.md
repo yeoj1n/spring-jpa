@@ -54,6 +54,8 @@ ORM의 장점|ORM의 단점|
 
 <hr>
 
+
+
 ## **JPA 프로그래밍**
 
 **application.properties**
@@ -134,6 +136,33 @@ public class JpaRunner implements ApplicationRunner{
 }
 
 ```
+
+## **@Embeddable, @Embedded**
+: Entity를 하나의 column으로 이용하고 싶을 때 사용한다.
+
+ex) Address를 Account의 column으로 이용하고 Address의 street 컬럼을 다른 컬럼명으로 변경하고 싶은 경우 
+
+```
+@Entity
+public class Account {
+	...
+
+	@Embedded
+	@AttributeOverrides({
+		@AttributeOverride(name="street", column = @Column(name="home_street"))
+	})
+	public Address address;
+}
+
+
+@Embeddable
+public class Address {
+	private String city;
+	private String street;
+	...
+}
+```
+
 
 **1대 다 맵핑**
 : Study 와 Account 간의 관계 맵핑
