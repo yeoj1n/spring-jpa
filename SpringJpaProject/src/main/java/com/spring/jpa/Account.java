@@ -4,6 +4,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.persistence.AttributeOverride;
+import javax.persistence.AttributeOverrides;
 import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -42,6 +44,12 @@ public class Account {
 	
     @OneToMany(mappedBy = "owner")
     private Set<Study> studies = new HashSet<>();
+    
+    @Embedded
+    @AttributeOverrides({
+    	 @AttributeOverride(name="city", column = @Column(name="home_street"))
+    })
+    public Address address;
     
     public void addStudy(Study study) {
     	this.getStudies().add(study);

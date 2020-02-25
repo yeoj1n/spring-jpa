@@ -10,6 +10,7 @@ import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 
 import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
@@ -98,11 +99,29 @@ public class JpaRunner implements ApplicationRunner{
 //	}
 	
 	// Native Query
-	@Override
-	public void run(ApplicationArguments args) throws Exception {
-		List<Post> posts = entityManager.createNativeQuery("select * from post", Post.class).getResultList();
-		posts.forEach(System.out::println);
-	}
-}
+	/*
+	 * @Override public void run(ApplicationArguments args) throws Exception {
+	 * List<Post> posts = entityManager.createNativeQuery("select * from post",
+	 * Post.class).getResultList(); posts.forEach(System.out::println); }
+	 */
+
 
 //--------------------------------- JPA Query ---------------------------------
+
+
+//--------------------------------- JpaRepository 사용 ---------------------------------	
+//
+//	@Autowired
+//	PostRepository postRepository;
+//	
+//	@Override
+//	public void run(ApplicationArguments args) throws Exception {
+//		postRepository.findAll().forEach(System.out::println);
+//	}
+	
+	@Override
+	public void run(ApplicationArguments args) throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+}

@@ -36,6 +36,6 @@ public class Post {
 	
 	public void removeComment(Comment comment) {
 		this.getComments().remove(comment);
-		comment.setPost(null);
+		comment.setComment(null);
 	}
 }
