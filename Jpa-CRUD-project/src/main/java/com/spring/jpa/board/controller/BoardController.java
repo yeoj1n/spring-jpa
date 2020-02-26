@@ -39,7 +39,7 @@ public class BoardController {
 	}
 	
 	@GetMapping("/{id}")
-	public Board getBoard(long id) {
+	public Board getBoard(@PathVariable("id")long id) {
 		Optional<Board> board = boardRepository.findById(id);
 		return board.get();
 	}
@@ -52,12 +52,15 @@ public class BoardController {
 	@PutMapping
 	public void updateBoard(Board newBoard) {
 		Board board = boardRepository.findById(newBoard.getId()).get();
-		board = newBoard;
+		board.setAuthor(newBoard.getAuthor());
+		board.setTitle(newBoard.getTitle());
+		board.setContent(newBoard.getContent());
+		
 		boardRepository.save(board);
 	}
 	
 	@DeleteMapping("/{id}")
-	public void removeBoard(long id) {
+	public void removeBoard(@PathVariable("id")long id) {
 		boardRepository.deleteById(id);
 	}
 	

@@ -1,11 +1,14 @@
 package com.spring.jpa.board.dto;
 
+import java.time.LocalDateTime;
+
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+
+import org.hibernate.annotations.CreationTimestamp;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,7 +30,9 @@ public class Board {
 	
 	private String content;
 	
-	@Temporal(TemporalType.TIMESTAMP)
-	private String regdate;
+
+	@Column(name="created_at")
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 	
 }
