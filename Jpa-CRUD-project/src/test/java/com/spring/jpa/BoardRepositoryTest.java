@@ -24,18 +24,20 @@ public class BoardRepositoryTest {
 	
 	@Test
 	public void crudTest() {
-		Board board = new Board();
-		board.setTitle("board title1");
-		board.setContent("board content1");
-		board.setAuthor("test user");
-		
-		Board board2 = new Board();
-		board.setTitle("board title2");
-		board.setContent("board content2");
-		board.setAuthor("test user");
+		Board board = Board.builder()
+						.title("board title1")
+						.content("board content1")
+						.author("test user")
+						.build();
+		Board board2 = Board.builder()
+						.title("board title2")
+						.content("board content2")
+						.author("test user")
+						.build();
 		
 		// 저장
 		boardRepository.save(board);
+		
 		boardRepository.save(board2);
 		
 		// board list 확인
@@ -45,10 +47,21 @@ public class BoardRepositoryTest {
 		Page<Board> page = boardRepository.findAll(PageRequest.of(0, 10));
 		assertThat(page.getTotalElements()).isEqualTo(2);
 		
-		board.setTitle("update title");
+		System.out.println("------------------------------- 업데이트 전 -------------------------------");
+		System.out.println(board.toString());
+	
 		
 		//update
-		boardRepository.save(board);
+		boardRepository.save(board.builder()
+								.title("update title")
+								.content("update content")
+								.author(board.getAuthor())
+								.build());
+				
+		System.out.println("------------------------------- 업데이트 후 -------------------------------");
+		System.out.println(board.toString());
+		
+		
 		
 		
 	}
