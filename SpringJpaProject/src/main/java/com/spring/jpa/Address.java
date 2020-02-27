@@ -5,6 +5,7 @@ import javax.persistence.Embeddable;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 	
+
 @NoArgsConstructor @AllArgsConstructor
 @Embeddable
 public class Address {
@@ -15,6 +16,6 @@ public class Address {
 	
 	private String state;
 	
-	private String zipCode;
+	private String zipCode; 
 	
 }

@@ -35,6 +35,18 @@ public class CommentRepositoryTest {
 		
 		// Then
 		assertThat(count).isEqualTo(1);
+		
+		// ----------------- Null 처리하기 -----------------
+		Optional<Comment> byId = commentRepository.findById(100L);
+		byId.orElse(null);
+		byId.orElseThrow(() -> new NoSuchElementException());
+		
+		commentRepository.save(null);
+		
+		if(comments != null) // 올바르지 않은 방법
+		assertThat(comments).isEmpty();
+		
+		// ----------------- Null 처리하기 -----------------
 	}
 	
 }

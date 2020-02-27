@@ -234,3 +234,34 @@ public class CommentRepositoryTest {
 	}	
 }
 ```
+
+# **18.Null 처리하기**
+
+### **1. Optional** 을 이용한 null처리
+
+: Optional은 Null을 리턴하지 않고 Optional.empty을 리턴한다.
+<br>
+
+
+**Optional 사용예제**
+
+```
+Optional<Comment> byId = commentRepository.findById(100L);
+
+byId.isPresent();
+byId.orElse(null);
+byId.orElseThrow(() -> new NoSuchElementException()); // 예외처리
+```
+
+### **2. Collection** 을 이용한 null처리
+: Collection은 Null을 리턴하지 않고 빈 콜렉션을 리턴한다.
+
+**Collection 사용예제**
+
+```
+List<Comment> comments = commentRepository.findAll();
+
+if(comments != null) // 올바르지 않은 방법
+assertThat(comments).isEmpty();
+```
+
