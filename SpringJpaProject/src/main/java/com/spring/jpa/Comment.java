@@ -22,6 +22,8 @@ public class Comment {
 	
 	private String comment;
 	
+	private Integer likeCount;
+	
 	@ManyToOne
 	private Post post;
 }

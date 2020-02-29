@@ -1,6 +1,7 @@
-# **16.Spring Data Common : Repository**
+# **Spring Data Common**
+<hr/>
 
-
+# **16.Repository**
 
 - Spring Data Common: **PagingAndSortingRepository > CrudRepository > Repository**<br>
 - Spring Data JPA : **JpaRepository**(**PagingAndSortingRepository** 상속)<br>
@@ -236,7 +237,7 @@ public class CommentRepositoryTest {
 ```
 
 # **18.Null 처리하기**
-
+<br>
 ### **1. Optional** 을 이용한 null처리
 
 : Optional은 Null을 리턴하지 않고 Optional.empty을 리턴한다.
@@ -265,3 +266,30 @@ if(comments != null) // 올바르지 않은 방법
 assertThat(comments).isEmpty();
 ```
 
+# **19.쿼리 만들기**
+- 메소드 이름을 분석해서 쿼리를 만드는 방법(Spring data 사용 find, contains 등)
+- USE_DECLARED_QUERY: 미리 정의해둔 쿼리를 사용(@Query를 찾아 적용)
+- CREATE_IF_NOT_FOUND(기본 값) : 선언된 쿼리 @Query 가 없으면 메소드 이름을 분석해서 쿼리를 만든다.
+
+```
+@SpringBootApplication
+@EnableJpaRepositories(queryLookupStrategy = Key.CREATE)
+@EnableJpaRepositories(queryLookupStrategy = Key.USE_DECLARED_QUERY)
+@EnableJpaRepositories(queryLookupStrategy = Key.CREATE_IF_NOT_FOUND) // 기본값
+public class SpringJpaProjectApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(SpringJpaProjectApplication.class, args);
+	}
+}
+
+public interface CommentRepository extends CommonRepository<Comment, Long> {
+	
+	@Query(value = "SELECT c FROM comment AS c", nativeQuery = true)
+	List<Comment> findByTitleContains(String keyword);
+	
+	
+}
+
+
+```
