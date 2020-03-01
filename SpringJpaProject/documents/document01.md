@@ -266,7 +266,7 @@ if(comments != null) // 올바르지 않은 방법
 assertThat(comments).isEmpty();
 ```
 
-# **19.쿼리 만들기**
+# **19/20. 쿼리 만들기**
 - 메소드 이름을 분석해서 쿼리를 만드는 방법(Spring data 사용 find, contains 등)
 - USE_DECLARED_QUERY: 미리 정의해둔 쿼리를 사용(@Query를 찾아 적용)
 - CREATE_IF_NOT_FOUND(기본 값) : 선언된 쿼리 @Query 가 없으면 메소드 이름을 분석해서 쿼리를 만든다.
@@ -290,6 +290,88 @@ public interface CommentRepository extends CommonRepository<Comment, Long> {
 	
 	
 }
+```
+### **쿼리만드는 규칙** <br>
+: 리턴타입 {접두어}{도입부}By{프로퍼티 표현식}(조건식)[(And|Or){프로퍼티표현식}(조건식)]{정렬조건}(매개변수)
 
 
+| | 메소드
+|------|---|
+|접두어|  Find, Get, Query, Count ...
+|도입부| Distinct, Fist(N), Top(N)
+|프로퍼티 표현식| Persion, Address, ZipCode => find(Person)ByAddress_ZipCode(...)
+|조건식| IgnoreCase, Between, LessThan, GreaterThan, Like, Contains, ...
+|정렬 조건| OrderBy{프로퍼티}Asc|Desc
+|리턴 타입| E, Optional<E>, List<E>, Page<E>, Slice<E>, Stream<E>
+|매개 변수| Pageable, Sort
+
+### **예제**
+
+```
+@Entity
+public class Comment {
+
+	@Id @GeneratedValue
+	private Long id;
+	
+	private String comment;
+	
+	private Integer likeCount;
+	
+	@ManyToOne
+	private Post post;
+}
+
+public interface CommentRepository extends CommonRepository<Comment, Long> {
+	
+	@Query(value = "SELECT c FROM comment AS c", nativeQuery = true)
+	List<Comment> findByCommentContains(String keyword);
+	
+	Page<Comment> findByLikeCountGreaterThan(int likeCount, Pageable page);
+	
+	List<Comment> findByCommentContainsIgnoreCaseAndLikeCountGreaterThan(String keyword, int likeCount);
+}
+
+@RunWith(SpringRunner.class)
+@DataJpaTest
+public class CommentRepositoryTest {
+
+	@Autowired
+	CommentRepository commentRepository;
+	
+
+	@Test
+	public void crud() {
+
+		Comment comment1 = new Comment();
+		comment1.setComment("test1");
+		comment1.setLikeCount(2);
+		
+		Comment comment2 = new Comment();
+		comment2.setComment("test2");
+		comment2.setLikeCount(10);
+		
+		
+		commentRepository.save(comment1);
+		commentRepository.save(comment2);
+
+		Page<Comment> pages = commentRepository.findByLikeCountGreaterThan(2, PageRequest.of(0, 10));
+		
+		pages.forEach(c -> System.out.println(c.getComment()));
+		// ----------------- 쿼리 만들기 -----------------
+		
+		// ----------------- 쿼리 만들기 실습-----------------
+		
+		//List<Comment> comments = commentRepository.findByCommentContainsIgnoreCaseAndLikeCountGreaterThan("test", 1);
+		//assertThat(comments.size()).isEqualTo(2);
+		
+		
+		try(Stream<Comment> comments = commentRepository.findByCommentContainsIgnoreCaseAndLikeCountGreaterThan("test", 1)) {
+			Comment firstComment = comments.findFirst().get();
+			//assertThat(firstComment.getComment()).isEqualTo("test1");
+			System.out.println(firstComment.getComment());
+		}		
+
+	}
+}
 ```
