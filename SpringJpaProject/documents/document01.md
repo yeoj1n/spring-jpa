@@ -351,7 +351,6 @@ public class CommentRepositoryTest {
 		comment2.setComment("test2");
 		comment2.setLikeCount(10);
 		
-		
 		commentRepository.save(comment1);
 		commentRepository.save(comment2);
 
@@ -370,8 +369,113 @@ public class CommentRepositoryTest {
 			Comment firstComment = comments.findFirst().get();
 			//assertThat(firstComment.getComment()).isEqualTo("test1");
 			System.out.println(firstComment.getComment());
-		}		
+		}
+	}
+}
+```
 
+# **21. 비동기 쿼리**
+
+
+# **22. 커스텀 레포지토리**
+
+쿼리 메소드로 해결이 되지않는 경우 직접 코딩으로 구현한다.<br>
+
+### **1. Spring Data Repository 인터페이스에 기능 추가**
+
+### **2. Spring Data Repository 기본 기능 덮어쓰기**
+<br>
+
+### **구현예제**
+```
+public interface PostCustomRepository<T> {
+
+	List<Post> findMyPost(); // 기능 추가
+
+	void delete(T entity); // 기능 덮어쓰기
+}
+
+
+@Repository
+@Transactional
+public class PostCustomRepositoryImpl implements PostCustomRepository<Post>{
+
+	@Autowired
+	EntityManager entityManager;
+	
+	@Override
+	public List<Post> findMyPost() {
+		return entityManager.createQuery("SELECT p FROM Post AS p", Post.class).getResultList();
+	}
+
+	// detached : 한번 persitent 상태였다가 빠져나온 상태, transaction에서 빠져나온 상태로 더이상 persistent 상태가 아님
+	@Override
+	public void delete(Post post) {
+		entityManager.detach(post);// 제거
+	}
+}
+
+
+public interface PostRepository extends JpaRepository<Post, Long>, PostCustomRepository<Post>{
+}
+
+
+public class PostRepositoryTest {
+
+	@Autowired
+	PostRepository postRepository;
+
+	@Test
+	@Rollback(false)
+	public void crudRepositoy(){
+		//postRepository.findMyPost();
+		
+		Post post = new Post();
+		post.setTitle("hibernate");
+		postRepository.save(post);
+		
+		postRepository.delete(post);
+		// postRepository.delete만 하면 rollaback 때문에 delete 하지않음, delete 를 하고 싶다면 flush 추가
+		postRepository.flush();
+		
+		// insert, delete 쿼리 날아가지 않는 이유 : 마지막까지 검토(?) 후 필요한 쿼리만 실행하기 때문
+	}
+}
+```
+
+### **3. 접미어 설정하기**
+Custom Repository의 기본 접미사는 Impl이다.(PostCustomRepositoryImpl)
+변경하려면 @EnableJpaRepositories 어노테이션의 repositoryImplementationPostfix 를 이용하여 정의
+
+### **구현예제**
+
+```
+@SpringBootApplication
+@EnableJpaRepositories(repositoryImplementationPostfix = "Default")
+public class SpringJpaProjectApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(SpringJpaProjectApplication.class, args);
+	}
+}
+
+
+@Repository
+@Transactional
+public class PostCustomRepositoryDefault implements PostCustomRepository<Post>{
+
+	@Autowired
+	EntityManager entityManager;
+	
+	@Override
+	public List<Post> findMyPost() {
+		return entityManager.createQuery("SELECT p FROM Post AS p", Post.class).getResultList();
+	}
+
+	// Detached 상태 : 한번 persitent 상태였다가 빠져나온 상태, transaction에서 빠져나온 상태로 더이상 persistent 상태가 아님
+	@Override
+	public void delete(Post post) {
+		entityManager.detach(post);// 제거
 	}
 }
 ```

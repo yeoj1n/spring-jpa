@@ -21,46 +21,65 @@ public class PostRepositoryTest {
 	@Autowired
 	PostRepository postRepository;
 	
+//	@Test
+//	@Rollback(false)
+//	public void crudRepositoy(){
+//		// Given
+//		Post post = new Post();
+//		post.setTitle("hello spring boot common!");
+//		assertThat(post.getId()).isNull();
+//		
+//		// When
+//		Post newPost = postRepository.save(post);
+//		List<Post> posts = postRepository.findAll();
+//		
+//		//Then
+//		assertThat(posts.size()).isEqualTo(1);
+//		assertThat(posts.contains(newPost));
+//	
+//		// When
+//		Page<Post> page = postRepository.findAll(PageRequest.of(0, 10));
+//		
+//		//Then
+//		assertThat(page.getTotalElements()).isEqualTo(1);
+//		assertThat(page.getNumber()).isEqualTo(0);// page는 0부터 시작
+//		assertThat(page.getTotalPages()).isEqualTo(1);
+//		assertThat(page.getSize()).isEqualTo(10);
+//		assertThat(page.getNumberOfElements()).isEqualTo(1);
+//		
+//		//When
+//		page = postRepository.findByTitleContains("spring",PageRequest.of(0, 10));
+//		
+//		//Then
+//		assertThat(page.getTotalElements()).isEqualTo(1);
+//		assertThat(page.getNumber()).isEqualTo(0);// page는 0부터 시작
+//		assertThat(page.getTotalPages()).isEqualTo(1);
+//		assertThat(page.getSize()).isEqualTo(10);
+//		assertThat(page.getNumberOfElements()).isEqualTo(1);
+//		
+//		//When
+//		long count = postRepository.countByTitleContains("spring");
+//		
+//		//Then
+//		assertThat(count).isEqualTo(1);
+//	}
+	
+	// ---------- 커스텀 레포지토리 ----------
 	@Test
 	@Rollback(false)
 	public void crudRepositoy(){
-		// Given
+		//postRepository.findMyPost();
+		
 		Post post = new Post();
-		post.setTitle("hello spring boot common!");
-		assertThat(post.getId()).isNull();
+		post.setTitle("hibernate");
+		postRepository.save(post);
 		
-		// When
-		Post newPost = postRepository.save(post);
-		List<Post> posts = postRepository.findAll();
+		postRepository.delete(post);
+		// postRepository.delete만 하면 rollaback 때문에 delete 하지않음, delete 를 하고 싶다면 flush 추가
+		postRepository.flush();
 		
-		//Then
-		assertThat(posts.size()).isEqualTo(1);
-		assertThat(posts.contains(newPost));
-	
-		// When
-		Page<Post> page = postRepository.findAll(PageRequest.of(0, 10));
-		
-		//Then
-		assertThat(page.getTotalElements()).isEqualTo(1);
-		assertThat(page.getNumber()).isEqualTo(0);// page는 0부터 시작
-		assertThat(page.getTotalPages()).isEqualTo(1);
-		assertThat(page.getSize()).isEqualTo(10);
-		assertThat(page.getNumberOfElements()).isEqualTo(1);
-		
-		//When
-		page = postRepository.findByTitleContains("spring",PageRequest.of(0, 10));
-		
-		//Then
-		assertThat(page.getTotalElements()).isEqualTo(1);
-		assertThat(page.getNumber()).isEqualTo(0);// page는 0부터 시작
-		assertThat(page.getTotalPages()).isEqualTo(1);
-		assertThat(page.getSize()).isEqualTo(10);
-		assertThat(page.getNumberOfElements()).isEqualTo(1);
-		
-		//When
-		long count = postRepository.countByTitleContains("spring");
-		
-		//Then
-		assertThat(count).isEqualTo(1);
+		// insert, delete 쿼리 날아가지 않는 이유 : 최종 쿼리만 실행 (rollback)
 	}
+	
+	// ---------- 커스텀 레포지토리 ----------
 }

@@ -13,7 +13,7 @@ import lombok.ToString;
 
 @NoArgsConstructor @AllArgsConstructor
 @Getter @Setter
-@ToString
+@ToString(exclude = "post")
 @Entity
 public class Comment {
 
