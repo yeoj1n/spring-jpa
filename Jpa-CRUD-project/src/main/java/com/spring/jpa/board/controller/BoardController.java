@@ -41,11 +41,11 @@ public class BoardController {
 		return boardList;
 	}
 	
-	@GetMapping("/{id}")
-	public Board getBoard(@PathVariable("id")long id) {
-		Optional<Board> board = boardRepository.findById(id);
-		return board.get();
-	}
+//	@GetMapping("/{id}")
+//	public Board getBoard(@PathVariable("id")long id) {
+//		Optional<Board> board = boardRepository.findById(id);
+//		return board.get();
+//	}
 	
 	@PostMapping
 	public void createBoard(@RequestBody Board board) {
@@ -61,5 +61,16 @@ public class BoardController {
 	public void removeBoard(@PathVariable("id")long id) {
 		boardRepository.deleteById(id);
 	}
+	
+	// contain 체크 후 get 
+	@GetMapping("/{id}")
+	public Board getBoard(@PathVariable("id")long id) {
+		int count = boardRepository.contains(id);
+		if(count != 0) {
+			return boardRepository.findById(id).get();
+		}
+		return null;
+	}
+	
 	
 }

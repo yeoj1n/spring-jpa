@@ -3,7 +3,6 @@ package com.spring.jpa;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 
 @SpringBootApplication
 // @EnableJpaRepositories(queryLookupStrategy = Key.CREATE)
@@ -15,7 +14,8 @@ import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 	예를 들어 repositoryImplementationPostfix = "Default" 로 정의한다면 
 	PostCustomRepositoryImpl 가 아닌 PostCustomRepositoryDefault 로 class를 정의해야한다.
 */
-@EnableJpaRepositories(repositoryImplementationPostfix = "Default")
+//@EnableJpaRepositories(repositoryImplementationPostfix = "Default")
+@EnableJpaRepositories(repositoryBaseClass = SimpleMyRepository.class)
 public class SpringJpaProjectApplication {
 
 	public static void main(String[] args) {

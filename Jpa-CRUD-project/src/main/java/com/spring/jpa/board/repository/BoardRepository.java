@@ -8,10 +8,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.spring.jpa.board.dto.Board;
 
-public interface BoardRepository extends JpaRepository<Board, Long>{
+//public interface BoardRepository extends JpaRepository<Board, Long>{
+//
+//	@Transactional
+//    @Modifying
+//	@Query(value="update Board b set b.title = :#{#board.title}, b.content = :#{#board.content}, b.author = :#{#board.author}  WHERE b.id = :#{#board.id}", nativeQuery=false)
+//	void update(@Param("board") Board board);
+//}
 
-	@Transactional
-    @Modifying
-	@Query(value="update Board b set b.title = :#{#board.title}, b.content = :#{#board.content}, b.author = :#{#board.author}  WHERE b.id = :#{#board.id}", nativeQuery=false)
-	void update(@Param("board") Board board);
-}
+// repository 커스터마이징
+public interface BoardRepository extends MyRepository<Board, Long> {}

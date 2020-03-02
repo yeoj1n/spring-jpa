@@ -36,7 +36,7 @@ public class Board {
 	
 	private String content;
 	
-	@Column(name="created_at", nullable = false)
+	@Column(name="created_at", nullable = true)
     @CreationTimestamp
     private LocalDateTime createdAt;
 	
@@ -51,4 +51,7 @@ public class Board {
 		this.author = author;
 	}
 	
+	public void setId(Long id) {
+		this.id = id;
+	}
 }

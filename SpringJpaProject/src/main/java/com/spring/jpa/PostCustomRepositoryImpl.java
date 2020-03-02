@@ -10,8 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @Transactional
-//public class PostCustomRepositoryImpl implements PostCustomRepository<Post>{
-public class PostCustomRepositoryDefault implements PostCustomRepository<Post>{
+public class PostCustomRepositoryImpl implements PostCustomRepository<Post>{
+//public class PostCustomRepositoryDefault implements PostCustomRepository<Post>{
 
 	@Autowired
 	EntityManager entityManager;

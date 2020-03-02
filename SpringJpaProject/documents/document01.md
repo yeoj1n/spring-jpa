@@ -479,3 +479,7 @@ public class PostCustomRepositoryDefault implements PostCustomRepository<Post>{
 	}
 }
 ```
+
+# **23. 기본 레포지토리 커스터마이징**
+
+모든 레포지토리에 공통적으로 추가하고 싶은 기능이나 덮어쓰고 싶은 기능이 있을 때 사용

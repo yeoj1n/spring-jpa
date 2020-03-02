@@ -338,6 +338,17 @@ public class Comment {
 - Detached : JPA가 더이상 관리하지 않는 상태
 - Removed : JPA가 관리하긴 하지만 삭제하기로 한 상태
 
+**flush** : 영속성 컨텍스트의 변경 내용을 DB 에 반영하는 것
+Transaction commit 이 일어날 때 flush가 동작하는데, 이때 쓰기 지연 저장소에 쌓아 놨던 INSERT, UPDATE, DELETE SQL들이 DB에 날아간다.
+(Transient 에 관계없이 쿼리를 바로바로 실행하고 싶다면 쿼리문 후 flush 실행)
+
+**FLUSH 예제**
+
+```
+postRepository.delete(post);
+postRepository.flush();
+```
+
 ### **Dirth checking / Write-behind**
 Transactional write-behind(트랜잭션을 지원하는 쓰기 지연) :  트랜젝션 커밋 될때까지 내부 쿼리저장소에 모아뒀다가 한번에 실행<br>
 Dirty Checking(변경감지) :
