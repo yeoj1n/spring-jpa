@@ -2,6 +2,7 @@ package com.spring.jpa;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
@@ -22,4 +23,11 @@ public class SpringJpaProjectApplication {
 		SpringApplication.run(SpringJpaProjectApplication.class, args);
 	}
 
+	
+//	// PostRepositoryTestConfig에 bean 등록
+//	@Bean
+//	public PostListener postListener() {
+//		return new PostListener();
+//	}
+	
 }

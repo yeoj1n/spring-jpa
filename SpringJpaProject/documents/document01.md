@@ -482,4 +482,266 @@ public class PostCustomRepositoryDefault implements PostCustomRepository<Post>{
 
 # **23. 기본 레포지토리 커스터마이징**
 
-모든 레포지토리에 공통적으로 추가하고 싶은 기능이나 덮어쓰고 싶은 기능이 있을 때 사용
+모든 레포지토리에 공통적으로 추가하고 싶은 기능이나 덮어쓰고 싶은 기능이 있을 때
+
+### **1. JpaRepository 를 상속받는 repository 생성**
+중복으로 bean이 등록되는 것을 막기 위해 @NoRepositoryBean 어노테이션을 추가해준다.
+
+```
+// 모든 repository에 공통으로 적용할 repository
+// JpaRepository를 상속받을 것이기 때문에 추가되는 repository이므로 중복 Bean등록을 막기위해 @NoRepositoryBean 필수
+@NoRepositoryBean
+public interface MyRepository<T, ID extends Serializable> extends JpaRepository<T, ID> {
+	
+	// entity가 Persistent context에 들어있는지 확인하는 기능
+	boolean contains(T entity);
+}
+```
+
+### **2. 커스텀 구현**
+SimpleJpaRepository를 상속받는 구현체 생성
+
+```
+public class SimpleMyRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID> implements MyRepository<T, ID>{
+
+	// Bean으로 만들어줄 필요가 없고 SimpleMyRepositoryImpl로 전달해주는 역할만 하면 된다.
+	private EntityManager entityManager;
+	
+	// 생성자 주입
+	private SimpleMyRepository(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager) {
+		super(entityInformation, entityManager);
+		this.entityManager = entityManager;
+	}
+
+	@Override
+	public boolean contains(T entity) {
+		return entityManager.contains(entity);
+	}
+}
+```
+
+### **3. @EnableJpaRepositories 에 repositoryBaseClass를 지정**
+커스텀한 인터페이스를 상속받은 모든 repository에서 커스텀 메소드를 사용할 수 있다.
+```
+public interface PostRepository extends MyRepository<Post, Long> {
+	
+}
+
+@SpringBootApplication
+@EnableJpaRepositories(repositoryBaseClass = SimpleMyRepository.class)
+public class SpringJpaProjectApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(SpringJpaProjectApplication.class, args);
+	}
+
+}
+```
+
+
+### ** 커스텀 repository 사용예제**
+
+```
+public interface PostRepository extends MyRepository<Post, Long> {
+	
+}
+
+@Test
+	public void crud() {
+		Post post = new Post();
+		post.setTitle("post 1");
+		
+		// 저장 전이므로 post 객체의 상태는 Transient(JPA가 모르는) 상태
+		assertThat(postRepository.contains(post)).isFalse();
+		
+		postRepository.save(post);
+		
+		// 저장 후므로 post 객체의 상태는 Persist(JPA가 관리중인) 상태
+		assertThat(postRepository.contains(post)).isTrue();
+	
+		
+		postRepository.delete(post);
+		postRepository.flush(); 
+		//flush 하면  삭제 후이므로 post 상태는 Detach(JPA가 관리하지 않는) 상태
+	}
+```
+
+# **24. 도메인 이벤트**
+
+이벤트를 발생시키는 방법은 2가지
+
+사용할 **Entity** 와 **Repsitory**
+
+**Entity**
+```
+@NoArgsConstructor @AllArgsConstructor
+@Getter @Setter
+@ToString (exclude = "comments")
+@Entity
+public class Post {
+
+	@Id @GeneratedValue
+	private Long id;
+	
+	private String title;
+	
+	@OneToMany(mappedBy = "post", cascade = CascadeType.PERSIST)
+	private Set<Comment> comments = new HashSet<>();
+	
+	public void addComment(Comment comment) {
+		this.getComments().add(comment);
+		comment.setPost(this);
+	}
+	
+	public void removeComment(Comment comment) {
+		this.getComments().remove(comment);
+		comment.setComment(null);
+	}
+
+}
+
+```
+
+**Repository**
+```
+public interface PostRepository extends JpaRepository<Post, Long> {
+	
+}
+```
+
+**이벤트와 이벤트 리스너 생성**
+
+1. 이벤트 class 생성
+
+	```
+	// Post 를 발행하는 event 클래스
+	public class PostPublishedEvent extends ApplicationEvent{
+
+		@Getter
+		private final Post post;
+		
+		public PostPublishedEvent(Object source) {
+			super(source);
+			this.post = (Post) source;
+		}
+	}
+	```
+2. 이벤트 리스너 생성
+
+	```
+	// @EventListener 사용하는 방법
+	public class PostListener {
+		
+		@EventListener
+		public void onApplicationEvent(PostPublishedEvent event) {
+			System.out.println("-------------------------------");
+			System.out.println(event.getPost() + "is published!");
+			System.out.println("-------------------------------");
+		}
+	}
+
+
+	// ApplicationListener 상속방는 방법
+	// 이벤트 listener class (PostRepositoryTestConfig.class에서 bean으로 등록)
+	public class PostListener implements ApplicationListener<PostPublishedEvent>{
+		
+		// 이벤트 발생 시 해야할 일
+		@Override
+		public void onApplicationEvent(PostPublishedEvent event) {
+			System.out.println("-------------------------------");
+			System.out.println(event.getPost() + "is published!");
+			System.out.println("-------------------------------");
+		}
+
+	}
+
+	```
+
+3. listener bean으로 등록 
+
+	```
+	@Configuration
+	public class PostRepositoryTestConfig {
+
+		@Bean
+		public PostListener postListener() {
+			return new PostListener();
+		}
+	}
+	```
+
+**1. 스프링 프레임워크의 이벤트 기능 사용(ApplicationEventPublisher)**
+
+
+	```
+	@RunWith(SpringRunner.class)
+	@DataJpaTest
+	@Import(PostRepositoryTestConfig.class) // 이벤트 리스너 bean 을 주입
+	public class PostRepositoryTest {
+
+		@Autowired
+		PostRepository postRepository;
+		
+		@Test
+		public void event() {
+			Post post = new Post();
+			post.setTitle("event");
+			
+			PostPublishedEvent event = new PostPublishedEvent(post);
+			applicationContext.publishEvent(event); // 이벤트 발행
+			
+		}
+	}
+	```
+
+
+**2. 스프링 데이터의 도메인 이벤트 기능 사용(AbstractAggregateRoot)**
+
+1. 도메인에 AbstractAggregateRoot 상속, 이벤트 발생 메소드 생성
+
+	```
+	public class Post extends AbstractAggregateRoot<Post>{
+		...
+
+			
+		// save 시 publish 해주면 이벤트를 발생시킨다.
+		public Post publish() {
+			// 이벤트 발행
+			this.registerEvent(new PostPublishedEvent(this));
+			return this;
+		}
+		
+	}
+	```
+
+2. test
+
+	```
+	@RunWith(SpringRunner.class)
+	@DataJpaTest
+	@Import(PostRepositoryTestConfig.class) // 이벤트 리스너 Bean 을 주입
+	public class PostRepositoryTest {
+
+		@Autowired
+		PostRepository postRepository;
+		
+		@Test
+		public void event() {
+			Post post = new Post();
+			post.setTitle("event");
+			
+			// 이벤트 발행
+			postRepository.save(post.publish());
+		}
+	}
+	```
+
+
+**결과 값**
+
+	-------------------------------
+	Post(id=1, title=event)is published!
+	-------------------------------
+
+
+# **25. 도메인 이벤트**
