@@ -7,6 +7,8 @@ import javax.persistence.EntityManager;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 
+import com.sun.el.stream.Optional;
+
 public class SimpleMyRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID> implements MyRepository<T, ID>{
 
 	private EntityManager entityManger;
@@ -20,16 +22,5 @@ public class SimpleMyRepository<T, ID extends Serializable> extends SimpleJpaRep
 	@Override
 	public Integer contains(ID id) {
 		return Integer.parseInt(String.valueOf(entityManger.createNativeQuery("SELECT count(*) from Board where id =" + id).getSingleResult()));
-	}
-	
-	@Override
-	public void update(T board) {
-		//entityManger.createQuery("update Board b set b.title = :#{#board.title}, b.content = :#{#board.content}, b.author = :#{#board.author}  WHERE b.id = :#{#board.id}").executeUpdate();
-		//entityManger.createQuery("update Board b set b.title = board title, b.content = board content, b.author = board author  WHERE b.id = board id").executeUpdate();
-		System.out.println(board);
-		//String sql = "update Board b set b.title = board.title, b.content = board.content, b.author = :#{#board.author}  WHERE b.id = :#{#board.id}";
-		
-		String sql = "update Board b set b.title = :board.title, b.content = :board.content, b.author = :board.author WHERE b.id = :board.id";
-		entityManger.createQuery(sql).executeUpdate();
 	}
 }

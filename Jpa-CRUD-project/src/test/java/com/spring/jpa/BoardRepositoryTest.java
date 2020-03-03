@@ -2,6 +2,7 @@ package com.spring.jpa;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.Test;
@@ -84,17 +85,26 @@ public class BoardRepositoryTest {
 			
 			boardRepository.flush();
 			
+			
 			// update 테스트
+			long id = board.getId();
+			LocalDateTime createTime = board.getCreatedAt();
+			
+			System.out.println("update 전!!!!!");
+			System.out.println(boardRepository.findById(id).get().getTitle());
 			
 			Board newBoard = Board.builder()
 					.title("update title1")
 					.content("update content1")
 					.author("update user")
+					.createdAt(createTime)
+					.id(id)
 					.build(); 
 			
-			newBoard.setId(board.getId());
+			boardRepository.save(newBoard);
 			
-			boardRepository.update(newBoard);
+			System.out.println("update 후!!!!!");
+			System.out.println(boardRepository.findById(id).get().getTitle());
 		}
 	
 }

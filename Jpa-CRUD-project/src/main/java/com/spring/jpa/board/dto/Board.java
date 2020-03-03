@@ -18,10 +18,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED) @AllArgsConstructor
-@Getter
+@Getter @Setter
 @Table(name = "board")
 @ToString
 @Entity
@@ -45,13 +46,12 @@ public class Board {
 //    private LocalDateTime updatedAt;
 	
 	@Builder
-	public Board(String title, String content, String author) {
+	public Board(String title, String content, String author, Long id, LocalDateTime createdAt) {
 		this.title = title;
 		this.content = content;
 		this.author = author;
+		this.id = id;
+		this.createdAt = createdAt;
 	}
 	
-	public void setId(Long id) {
-		this.id = id;
-	}
 }

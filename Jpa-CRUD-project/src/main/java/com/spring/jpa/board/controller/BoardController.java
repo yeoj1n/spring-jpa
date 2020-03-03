@@ -54,9 +54,14 @@ public class BoardController {
 	
 	@PutMapping
 	public void updateBoard(@RequestBody Board newBoard) {
-		boardRepository.update(newBoard);
+		Optional<Board> board = boardRepository.findById(newBoard.getId());
+		newBoard.setCreatedAt(board.get().getCreatedAt());
+		
+		board.ifPresent(b -> boardRepository.save(newBoard));
+			
+			
 	}
-	
+	 
 	@DeleteMapping("/{id}")
 	public void removeBoard(@PathVariable("id")long id) {
 		boardRepository.deleteById(id);
