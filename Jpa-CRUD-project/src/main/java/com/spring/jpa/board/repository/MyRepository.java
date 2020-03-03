@@ -12,10 +12,4 @@ public interface MyRepository<T, ID extends Serializable> extends JpaRepository<
 
 	Integer contains(ID id);
 	
-	@Modifying
-	void update(T entity);
-	
-//	@Query(value="update Board b set b.title = :#{#board.title}, b.content = :#{#board.content}, b.author = :#{#board.author}  WHERE b.id = :#{#board.id}", nativeQuery=false)
-//	void update(T entity);
-	
 }
