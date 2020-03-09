@@ -1,4 +1,4 @@
-package com.spring.jpa;
+package com.spring.jpa.board;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

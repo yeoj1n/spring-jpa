@@ -881,4 +881,244 @@ public class PostRepositoryTest {
 }
 ```
 
+# **26. Web : 웹 지원 기능 소개**
+- DomainClassConverter
+- Page 관련 HATEOAS 기능
+- Payload 프로젝션
 
+# **27. Web : DomainClassConverter**
+: 요청 값을 도메인 플래스로 변환하여 controller의 method에 전달하는 Converter
+
+**예제**
+```
+	// 일반적인 사용방법
+	@GetMapping("/{id}")
+	public Board getBoard(@PathVariable("id")long id) {
+		return boardRepository.findById(id).get();
+	}
+
+	// DomainClassConverter 사용
+	@GetMapping("/{id}")
+	public Board getBoard(@PathVariable("id")Board board) {
+		return board;
+	}
+```
+
+# **28. Web : Pageable & sort**
+: Pageable 사용시 sorting도 할 수 있다.
+
+### ** 페이징과 정렬 관련 매개변수**
+-> page : 0부터 시작
+-> size : 20 (기본값)
+-> sort : property.property(.ASC(기본값)|DESC)
+ex) sort=created.desc&sort=title
+
+
+
+**예제**
+```
+@RestController
+@RequestMapping("/board")
+public class BoardController {	
+
+	// 10개씩 페이징
+	@GetMapping("/list/{pageNum}")
+	public Page<Board> getBoardList(@PathVariable("pageNum")int pageNum) {
+		Page<Board> boardList = boardRepository.findAll(PageRequest.of(pageNum, 10));
+		return boardList;
+	}
+}
+
+
+// Test(paging & sorting)
+
+@RunWith(SpringRunner.class)
+@SpringBootTest
+@AutoConfigureMockMvc
+public class BoardControllerTest {
+
+	@Autowired
+	MockMvc mockMvc;
+	
+	@Autowired
+	BoardRepository boardRepository;
+	
+	@Test
+	public void getBoards() throws Exception {
+		Board board1 = Board.builder()
+				.title("title1")
+				.content("board content1")
+				.author("test user")
+				.build();
+		
+		Board board2 = Board.builder()
+				.title("title2")
+				.content("board content2")
+				.author("test user")
+				.build();
+		
+		boardRepository.save(board1);
+		boardRepository.save(board2);
+		
+		mockMvc.perform(get("/board/list")
+						.param("page", "0")
+						.param("size", "10")
+						.param("sort", "createdAt,desc")
+						.param("sort", "title"))
+						.andDo(print())
+						.andExpect(status().isOk())
+						.andExpect(jsonPath("$.content[0].title", is("title2")));
+	}
+	
+}
+```
+
+# **29. Web : HATEOAS**
+
+**예제**
+
+```
+@RestController
+@RequestMapping("/board")
+public class BoardController {	
+
+	// 2.2.4 기준 : PagedModel<EntityModel<Entity>> / 이전 기준 PagedResources<Resource<Entity>>
+	@GetMapping("/list")
+	public PagedModel<EntityModel<Board>> getBoardList(Pageable pageable, PagedResourcesAssembler<Board> assembler) {
+		return assembler.toModel(boardRepository.findAll(pageable));
+	}
+}
+
+
+// Test(paging & sorting)
+
+@RunWith(SpringRunner.class)
+@SpringBootTest
+@AutoConfigureMockMvc
+public class BoardControllerTest {
+
+	@Autowired
+	MockMvc mockMvc;
+	
+	@Autowired
+	BoardRepository boardRepository;
+	
+	@Test
+	public void getBoards() throws Exception {
+		Board board1 = Board.builder()
+				.title("title1")
+				.content("board content1")
+				.author("test user")
+				.build();
+		
+		Board board2 = Board.builder()
+				.title("title2")
+				.content("board content2")
+				.author("test user")
+				.build();
+		
+		boardRepository.save(board1);
+		boardRepository.save(board2);
+		
+		mockMvc.perform(get("/board/list")
+						.param("page", "0")
+						.param("size", "10")
+						.param("sort", "createdAt,desc")
+						.param("sort", "title"))
+						.andDo(print())
+						.andExpect(status().isOk());
+	}
+	
+}
+```
+
+**응답 값 비교**
+
+리소스로 변환 전 (HATEOAS 사용 x)
+
+```
+{
+  "content": [
+    {
+      "id": 2,
+      "author": "test user",
+      "title": "title2",
+      "content": "board content2",
+      "createdAt": "2020-03-09T18:42:03.876"
+    },
+    {
+      "id": 1,
+      "author": "test user",
+      "title": "title1",
+      "content": "board content1",
+      "createdAt": "2020-03-09T18:42:03.835"
+    }
+  ],
+  "pageable": {
+    "sort": {
+      "sorted": true,
+      "unsorted": false,
+      "empty": false
+    },
+    "offset": 0,
+    "pageSize": 10,
+    "pageNumber": 0,
+    "unpaged": false,
+    "paged": true
+  },
+  "totalPages": 1,
+  "last": true,
+  "totalElements": 2,
+  "number": 0,
+  "size": 10,
+  "numberOfElements": 2,
+  "sort": {
+    "sorted": true,
+    "unsorted": false,
+    "empty": false
+  },
+  "first": true,
+  "empty": false
+}
+```
+
+
+리소스로 변환 후 (HATEOAS 사용)
+
+```
+{
+  "_embedded": {
+    "boardList": [
+      {
+        "id": 2,
+        "author": "test user",
+        "title": "title2",
+        "content": "board content2",
+        "createdAt": "2020-03-09T18:42:55.467"
+      },
+      {
+        "id": 1,
+        "author": "test user",
+        "title": "title1",
+        "content": "board content1",
+        "createdAt": "2020-03-09T18:42:55.433"
+      }
+    ]
+  },
+  "_links": {
+    "self": {
+      "href": "http://localhost/board/list?page=0&size=10&sort=createdAt,desc&sort=title,asc"
+
+	  // sorting 없는 경우 다음과 같이 출력
+	  //"href": "http://localhost/board/list?page=0&size=10"
+    }
+  },
+  "page": {
+    "size": 10,
+    "totalElements": 2,
+    "totalPages": 1,
+    "number": 0
+  }
+}
+
+```
