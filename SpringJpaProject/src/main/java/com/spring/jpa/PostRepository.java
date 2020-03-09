@@ -3,6 +3,7 @@ package com.spring.jpa;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 
 // @Repository 가 없어도 JpaRepository가 bean으로 등록해준다.
 //public interface PostRepository extends JpaRepository<Post, Long> {
@@ -17,6 +18,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 //	
 //}
 
-public interface PostRepository extends MyRepository<Post, Long> {
+public interface PostRepository extends MyRepository<Post, Long>, QuerydslPredicateExecutor<Post> {
 	
 }

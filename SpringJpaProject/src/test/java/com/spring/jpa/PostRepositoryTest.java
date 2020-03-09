@@ -2,14 +2,22 @@ package com.spring.jpa;
 
 
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import com.querydsl.core.types.Predicate;
 
 @RunWith(SpringRunner.class)
 @DataJpaTest
@@ -18,6 +26,9 @@ public class PostRepositoryTest {
 
 	@Autowired
 	PostRepository postRepository;
+	
+	@Autowired
+	CommentRepository commentRepository;
 	
 //	@Test
 //	@Rollback(false)
@@ -121,13 +132,47 @@ public class PostRepositoryTest {
 //	}
 	
 	// 스프링 데이터의 도메인 이벤트 발생 기능(save 시 이벤트 발생 , Entity 에 AbstractAggregateRoot를 상속, publish 메소드 등록)
-	@Test
-	public void event() {
-		Post post = new Post();
-		post.setTitle("event");
-		
-		// 이벤트 발행
-		postRepository.save(post.publish());
-	}
+//	@Test
+//	public void event() {
+//		Post post = new Post();
+//		post.setTitle("event");
+//		
+//		// 이벤트 발행
+//		postRepository.save(post.publish());
+//	}
 	// ---------- 도메인 이벤트 ----------
+	
+	
+	// ---------- QueryDSL : custom repository ----------
+	
+	@Test
+	public void crud() {
+		Comment comment1 = new Comment();
+		comment1.setComment("test comment1!");
+		comment1.setLikeCount(5);
+		
+		Comment comment2 = new Comment();
+		comment2.setComment("test comment2!");
+		comment2.setLikeCount(3);
+		
+		commentRepository.save(comment1);
+		commentRepository.save(comment2);
+		
+		
+		Set<Comment> set = new HashSet<>();
+		set.add(comment1);
+		set.add(comment2);
+		
+		Post post = new Post();
+		post.setTitle("hibernate!");
+		post.setComments(set);
+		
+		postRepository.saveAndFlush(post.publish());
+		
+		Predicate predicate = QPost.post.title.contains("hi");
+		Optional<Post> one = postRepository.findOne(predicate);
+		assertThat(one).isNotEmpty();
+	}
+	
+	// ---------- QueryDSL : custom repository ----------
 }

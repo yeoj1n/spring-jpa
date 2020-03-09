@@ -24,7 +24,7 @@ import lombok.Setter;
 
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
-@Entity(name = "myAccount")// hibernate 내에서 사용하는 이름
+@Entity(name = "Account")// hibernate 내에서 사용하는 이름
 @Table(name = "Account")// table에 맵핑되는 이름
 public class Account {
 
@@ -41,6 +41,10 @@ public class Account {
 	private String username;
     
     private String password;
+    
+    private String firstname;
+    
+    private String lastname;
 	
     @OneToMany(mappedBy = "owner")
     private Set<Study> studies = new HashSet<>();

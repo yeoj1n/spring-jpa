@@ -744,4 +744,141 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 	-------------------------------
 
 
-# **25. 도메인 이벤트**
+# **25. QueryDSL**
+
+-> 타입 세이프한 쿼리를 만들 수 있게 도와주는 라이브러리
+
+-> 쿼리를 java 코드로 만들수 있음
+
+## **QueryDSL 사용방법**
+
+1. queryDSL 의존성 주입 및 plugin 설정
+
+```
+	<dependency>
+		<groupId>com.querydsl</groupId>
+		<artifactId>querydsl-jpa</artifactId>
+		<version>4.2.2</version>
+	</dependency>
+	
+	<dependency>
+		<groupId>com.querydsl</groupId>
+		<artifactId>querydsl-apt</artifactId>
+		<version>4.2.2</version>
+	</dependency>
+
+	<build>
+		<plugins>
+			...
+			
+			<plugin>
+                <groupId>com.mysema.maven</groupId>
+                <artifactId>apt-maven-plugin</artifactId>
+                <version>1.1.3</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>process</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/generated-sources/java/</outputDirectory>
+         					<processor>com.querydsl.apt.jpa.JPAAnnotationProcessor</processor>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+		</plugins>
+	</build>
+```
+
+2. maven/ gradle compile
+
+3. compile이 success되면 다음과 같이 target 하위에 queryDSL 파일들이 생성됨.
+![target](./images/25-1.PNG)
+
+4. 기본 Repository 에 QuerydslPredicateExecutor 상속
+
+```
+public interface AccountRepository extends JpaRepository<Account, Long>, QuerydslPredicateExecutor<Account> {
+
+}
+```
+
+5. Repository Test
+
+```
+@RunWith(SpringRunner.class)
+@DataJpaTest
+public class AccountRepositoryTest {
+
+	@Autowired
+	AccountRepository accountRepository;
+	
+	@Test
+	public void crud() {
+		Account account = new Account();
+		account.setFirstname("hello-user");
+		account.setLastname("kim");
+		
+		accountRepository.save(account);
+		
+		Predicate predicate = QAccount.account
+								.lastname.containsIgnoreCase("kim")
+								.and(QAccount.account.firstname.startsWith("hello"));
+		
+		Optional<Account> one = accountRepository.findOne(predicate);
+		
+		assertThat(one.get().getId()).isEqualTo(1);
+	}
+}
+```
+
+**강의에서는 기본 리포지토리를 커스터마이징 한 경우 QuerydslPredicateExecutor 를 상속받아 사용할 수 없다고 하는데 테스트해보니 QuerydslPredicateExecutor 상속받으면 바로 사용이 가능하다.**
+
+```
+public interface PostRepository extends MyRepository<Post, Long>, QuerydslPredicateExecutor<Post> {
+	
+}
+
+
+
+@RunWith(SpringRunner.class)
+@DataJpaTest
+@Import(PostRepositoryTestConfig.class) // 이벤트 리스너 bean 을 주입
+public class PostRepositoryTest {
+
+	@Autowired
+	PostRepository postRepository;
+
+	@Test
+		public void crud() {
+			Comment comment1 = new Comment();
+			comment1.setComment("test comment1!");
+			comment1.setLikeCount(5);
+			
+			Comment comment2 = new Comment();
+			comment2.setComment("test comment2!");
+			comment2.setLikeCount(3);
+			
+			commentRepository.save(comment1);
+			commentRepository.save(comment2);
+			
+			
+			Set<Comment> set = new HashSet<>();
+			set.add(comment1);
+			set.add(comment2);
+			
+			Post post = new Post();
+			post.setTitle("hibernate!");
+			post.setComments(set);
+			
+			postRepository.saveAndFlush(post.publish());
+			
+			Predicate predicate = QPost.post.title.contains("hi");
+			Optional<Post> one = postRepository.findOne(predicate);
+			assertThat(one).isNotEmpty();
+	}
+}
+```
+
+
